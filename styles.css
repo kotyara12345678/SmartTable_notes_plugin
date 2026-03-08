@@ -1,0 +1,226 @@
+/**
+ * Стили для Notes Plugin
+ */
+
+/* Окно заметок */
+.notes-window {
+  width: 100%;
+  max-width: 600px;
+  background: var(--bg-primary, #ffffff);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Заголовок */
+.notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #107c41 0%, #0d5c33 100%);
+  color: white;
+}
+
+.notes-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.notes-title svg {
+  width: 24px;
+  height: 24px;
+}
+
+.notes-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.notes-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.notes-close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Панель инструментов */
+.notes-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--bg-secondary, #f5f5f5);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.notes-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--accent-color, #107c41);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.notes-add-btn:hover {
+  background: var(--accent-dark, #0d5c33);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 124, 65, 0.3);
+}
+
+.notes-add-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.notes-count {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+}
+
+/* Список заметок */
+.notes-list {
+  padding: 16px 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notes-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary, #999);
+  font-size: 14px;
+}
+
+/* Заметка */
+.note-item {
+  background: var(--bg-secondary, #f9f9f9);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.note-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.note-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.note-title {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #333);
+}
+
+.note-title:focus {
+  outline: none;
+  border-color: var(--accent-color, #107c41);
+  box-shadow: 0 0 0 2px rgba(16, 124, 65, 0.15);
+}
+
+.note-delete-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #999);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.note-delete-btn:hover {
+  background: #c62828;
+  color: white;
+}
+
+.note-delete-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.note-content {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #333);
+}
+
+.note-content:focus {
+  outline: none;
+  border-color: var(--accent-color, #107c41);
+  box-shadow: 0 0 0 2px rgba(16, 124, 65, 0.15);
+}
+
+.note-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.note-date {
+  font-size: 11px;
+  color: var(--text-secondary, #999);
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+  .notes-window {
+    max-width: 100%;
+    margin: 0 10px;
+  }
+  
+  .notes-header {
+    padding: 12px 16px;
+  }
+  
+  .notes-toolbar {
+    padding: 10px 16px;
+  }
+  
+  .notes-list {
+    padding: 12px 16px;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "notes-plugin",
+  "version": "1.0.0",
+  "description": "Notes Plugin for SmartTable - Auto Build & Release",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "release": "node scripts/release.js",
+    "deploy": "npm run build && npm run release",
+    "ci": "echo 'CI/CD via GitHub Actions'"
+  },
+  "devDependencies": {
+    "adm-zip": "^0.5.10",
+    "@octokit/rest": "^20.0.2"
+  },
+  "config": {
+    "githubOwner": "kotyara12345678",
+    "githubRepo": "SmartTable_notes_plugin",
+    "releaseTag": "plugin"
+  }
+}

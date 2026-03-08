@@ -1,0 +1,121 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get current version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Auto-increment version
+        id: bump-version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./manifest.json').version")
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          echo "New version: $CURRENT_VERSION -> $NEW_VERSION"
+          
+          # Обновляем manifest.json
+          node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf-8'));
+            manifest.version = '$NEW_VERSION';
+            fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
+          "
+          
+          # Обновляем package.json
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+            pkg.version = '$NEW_VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: plugin
+          name: v${{ steps.bump-version.outputs.new_version }}
+          body: |
+            ## Notes Plugin v${{ steps.bump-version.outputs.new_version }}
+
+            ### Изменения
+            - ✅ Плавающая кнопка в правом нижнем углу
+            - ✅ Независимость от ribbon API
+            - ✅ Автоматическое сохранение заметок
+            - ✅ Поддержка модальных окон
+
+            ### Установка
+            1. Скачайте notes-plugin.zip
+            2. В SmartTable откройте Extensions
+            3. Нажмите "Установить" и выберите файл
+
+            ### Совместимость
+            - SmartTable v1.0.0+
+            - API Version: 1.0
+
+            ---
+            📅 Дата релиза: $(date +%Y-%m-%d)
+            🔗 Репозиторий: https://github.com/${{ github.repository }}
+          files: build/notes-plugin.zip
+          fail_on_unmatched_files: true
+          prerelease: false
+          make_latest: true
+
+      - name: Commit version bump
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add manifest.json package.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: bump version to ${{ steps.bump-version.outputs.new_version }} [skip ci]"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Show Release URL
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "✅ Релиз успешно создан!"
+          echo "=========================================="
+          echo "📦 Версия: v${{ steps.bump-version.outputs.new_version }}"
+          echo "🔗 Ссылка на релиз:"
+          echo "   https://github.com/${{ github.repository }}/releases/tag/plugin"
+          echo ""
+          echo "📥 Прямая ссылка на ZIP:"
+          echo "   https://github.com/${{ github.repository }}/releases/latest/download/notes-plugin.zip"
+          echo "=========================================="

@@ -1,0 +1,20 @@
+{
+  "id": "com.smarttable.notes-plugin",
+  "name": "Заметки",
+  "version": "1.0.0",
+  "description": "Простой плагин для создания заметок. Открывается в отдельном окне, сохраняет все заметки локально.",
+  "author": "SmartTable Team",
+  "main": "main.js",
+  "styles": ["styles.css"],
+  "apiVersion": "1.0",
+  "permissions": [
+    "ui.ribbon",
+    "ui.modal",
+    "storage.read",
+    "storage.write"
+  ],
+  "icon": "assets/icon.png",
+  "homepage": "https://github.com/kotyara12345678/SmartTable_notes_plugin",
+  "keywords": ["заметки", "notes", "текст"],
+  "license": "MIT"
+}
