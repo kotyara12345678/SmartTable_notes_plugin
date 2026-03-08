@@ -5,7 +5,7 @@
  * Открывается в отдельном модальном окне.
  *
  * @package com.smarttable.notes-plugin
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 export function activate(api) {
@@ -13,6 +13,15 @@ export function activate(api) {
 
   // ID для хранения заметок
   const STORAGE_KEY = 'notes-plugin-data';
+
+  // Сохранение с задержкой (debounce)
+  let saveTimeout = null;
+  function debouncedSave(notes) {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      saveNotes(notes);
+    }, 500);
+  }
 
   /**
    * Загрузить заметки из хранилища
@@ -38,7 +47,7 @@ export function activate(api) {
     noteEl.className = 'note-item';
     noteEl.innerHTML = `
       <div class="note-header">
-        <input type="text" class="note-title" value="${escapeHtml(note.title || 'Без названия')}" placeholder="Название заметки">
+        <input type="text" class="note-title" value="${escapeHtml(note.title || '')}" placeholder="Название заметки">
         <button class="note-delete-btn" title="Удалить заметку">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3,6 5,6 21,6"/>
@@ -48,6 +57,7 @@ export function activate(api) {
       </div>
       <textarea class="note-content" placeholder="Введите текст заметки...">${escapeHtml(note.content || '')}</textarea>
       <div class="note-footer">
+        <span class="note-status">💾 Сохранено</span>
         <span class="note-date">${formatDate(note.date)}</span>
       </div>
     `;
@@ -55,19 +65,45 @@ export function activate(api) {
     const titleInput = noteEl.querySelector('.note-title');
     const contentTextarea = noteEl.querySelector('.note-content');
     const deleteBtn = noteEl.querySelector('.note-delete-btn');
+    const statusEl = noteEl.querySelector('.note-status');
 
-    titleInput.addEventListener('input', () => {
+    let isSaving = false;
+
+    function showSaving() {
+      statusEl.textContent = '⏳ Сохранение...';
+      statusEl.style.color = '#f59e0b';
+    }
+
+    function showSaved() {
+      statusEl.textContent = '💾 Сохранено';
+      statusEl.style.color = '#10b981';
+    }
+
+    function handleInput() {
+      if (isSaving) return;
+      isSaving = true;
+      showSaving();
+      
       note.title = titleInput.value;
-      note.date = new Date().toISOString();
-      saveNotes(getAllNotes());
-      updateFooter(noteEl, note.date);
-    });
-
-    contentTextarea.addEventListener('input', () => {
       note.content = contentTextarea.value;
       note.date = new Date().toISOString();
-      saveNotes(getAllNotes());
-      updateFooter(noteEl, note.date);
+      
+      debouncedSave(getAllNotes());
+      
+      setTimeout(() => {
+        isSaving = false;
+        showSaved();
+        updateFooter(noteEl, note.date);
+      }, 600);
+    }
+
+    titleInput.addEventListener('input', handleInput);
+    contentTextarea.addEventListener('input', handleInput);
+
+    // Авто-увеличение textarea
+    contentTextarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 400) + 'px';
     });
 
     deleteBtn.addEventListener('click', () => {
@@ -108,7 +144,7 @@ export function activate(api) {
   function updateFooter(noteEl, date) {
     const footer = noteEl.querySelector('.note-footer');
     if (footer) {
-      footer.innerHTML = `<span class="note-date" data-timestamp="${date}">${formatDate(date)}</span>`;
+      footer.innerHTML = `<span class="note-status">💾 Сохранено</span><span class="note-date" data-timestamp="${date}">${formatDate(date)}</span>`;
     }
   }
 
@@ -149,16 +185,16 @@ export function activate(api) {
     modalContent.innerHTML = `
       <div class="notes-window">
         <div class="notes-header">
-          <h2 class="notes-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <div class="notes-header-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="notes-header-icon">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
               <polyline points="14,2 14,8 20,8"/>
               <line x1="16" y1="13" x2="8" y2="13"/>
               <line x1="16" y1="17" x2="8" y2="17"/>
               <polyline points="10,9 9,9 8,9"/>
             </svg>
-            Заметки
-          </h2>
+            <h2 class="notes-title">Заметки</h2>
+          </div>
           <button class="notes-close-btn" title="Закрыть">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"/>
@@ -175,11 +211,19 @@ export function activate(api) {
             </svg>
             Новая заметка
           </button>
-          <span class="notes-count">Заметок: ${notes.length}</span>
+          <div class="notes-toolbar-right">
+            <span class="notes-count">📝 ${notes.length} заметок</span>
+            <button class="notes-clear-btn" id="clearAllBtn" title="Удалить все заметки">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"/>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div class="notes-list">
-          ${notes.length === 0 ? '<div class="notes-empty">Нет заметок. Создайте первую!</div>' : ''}
+          ${notes.length === 0 ? '<div class="notes-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><p>Нет заметок. Создайте первую!</p></div>' : ''}
         </div>
       </div>
     `;
@@ -192,11 +236,16 @@ export function activate(api) {
         saveNotes(newNotes);
         updateCount(modalContent);
         if (newNotes.length === 0) {
-          notesList.innerHTML = '<div class="notes-empty">Нет заметок. Создайте первую!</div>';
+          notesList.innerHTML = '<div class="notes-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><p>Нет заметок. Создайте первую!</p></div>';
         }
       });
       notesList.appendChild(noteEl);
     });
+
+    // Прокрутка вниз при открытии
+    setTimeout(() => {
+      notesList.scrollTop = notesList.scrollHeight;
+    }, 100);
 
     const addBtn = modalContent.querySelector('#addNoteBtn');
     addBtn.addEventListener('click', () => {
@@ -220,6 +269,9 @@ export function activate(api) {
       if (emptyMsg) emptyMsg.remove();
 
       notesList.appendChild(noteEl);
+      
+      // Прокрутка к новой заметке
+      notesList.scrollTop = notesList.scrollHeight;
       noteEl.querySelector('.note-title').focus();
 
       const currentNotes = getAllNotes();
@@ -230,6 +282,19 @@ export function activate(api) {
     const closeBtn = modalContent.querySelector('.notes-close-btn');
     closeBtn.addEventListener('click', () => {
       api.ui.closeModals();
+    });
+
+    // Удалить все заметки
+    const clearAllBtn = modalContent.querySelector('#clearAllBtn');
+    clearAllBtn.addEventListener('click', () => {
+      const noteCount = notesList.querySelectorAll('.note-item').length;
+      if (noteCount === 0) return;
+      
+      if (confirm(`Удалить все ${noteCount} заметок? Это действие нельзя отменить.`)) {
+        notesList.innerHTML = '<div class="notes-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><p>Нет заметок. Создайте первую!</p></div>';
+        saveNotes([]);
+        updateCount(modalContent);
+      }
     });
 
     api.ui.showModal(modalContent);
@@ -245,7 +310,13 @@ export function activate(api) {
     const notesList = modalContent.querySelector('.notes-list');
     const noteCount = notesList.querySelectorAll('.note-item').length;
     if (countEl) {
-      countEl.textContent = `Заметок: ${noteCount}`;
+      countEl.textContent = `📝 ${noteCount} заметок`;
+    }
+    
+    // Показать/скрыть кнопку очистки
+    const clearBtn = modalContent.querySelector('#clearAllBtn');
+    if (clearBtn) {
+      clearBtn.style.display = noteCount > 0 ? 'flex' : 'none';
     }
   }
 
@@ -285,22 +356,22 @@ export function activate(api) {
         <polyline points="10,9 9,9 8,9"/>
       </svg>
     `;
-    
+
     floatBtn.addEventListener('click', openNotesWindow);
-    
+
     floatBtn.addEventListener('mouseenter', () => {
       floatBtn.style.transform = 'scale(1.1) rotate(5deg)';
       floatBtn.style.boxShadow = '0 6px 20px rgba(16, 124, 65, 0.6)';
     });
-    
+
     floatBtn.addEventListener('mouseleave', () => {
       floatBtn.style.transform = 'scale(1) rotate(0deg)';
       floatBtn.style.boxShadow = '0 4px 12px rgba(16, 124, 65, 0.4)';
     });
-    
+
     document.body.appendChild(floatBtn);
     console.log('[NotesPlugin] Плавающая кнопка добавлена');
-    
+
     return floatBtn;
   }
 
