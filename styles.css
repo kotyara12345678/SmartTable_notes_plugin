@@ -1,6 +1,7 @@
 /**
  * Стили для Notes Plugin
  * Современный дизайн с улучшенным UX
+ * Совместимость с темами SmartTable
  */
 
 /* ===== Модальное окно ===== */
@@ -8,11 +9,13 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .notes-window {
-  width: 100%;
-  max-width: 900px;
+  width: 95vw;
+  max-width: 1400px;
+  min-width: 1000px;
   background: var(--bg-primary, #ffffff);
   border-radius: 16px;
   overflow: hidden;
@@ -20,6 +23,7 @@
   display: flex;
   flex-direction: column;
   max-height: 85vh;
+  min-height: 600px;
 }
 
 /* ===== Заголовок ===== */
@@ -164,10 +168,13 @@
   padding: 20px 24px;
   background: #fafbfc;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
   min-height: 400px;
-  max-height: calc(85vh - 180px);
+  max-height: calc(85vh - 160px);
   scroll-behavior: smooth;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Скроллбар */
@@ -222,6 +229,8 @@
   margin-bottom: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .note-item:hover {
@@ -243,10 +252,12 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
+  width: 100%;
 }
 
 .note-title {
   flex: 1;
+  min-width: 200px;
   padding: 10px 14px;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
@@ -255,6 +266,8 @@
   background: #ffffff;
   color: #1f2937;
   transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .note-title::placeholder {
@@ -306,6 +319,7 @@
   background: #ffffff;
   color: #374151;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .note-content::placeholder {
@@ -375,7 +389,91 @@
   }
 }
 
-/* ===== Тёмная тема ===== */
+/* ===== Тёмная тема и совместимость с темами SmartTable ===== */
+/* SmartTable использует data-theme атрибут */
+[data-theme="dark"] .notes-window,
+.theme-dark .notes-window,
+.dark-mode .notes-window {
+  background: #1f2937;
+}
+
+[data-theme="dark"] .notes-toolbar,
+.theme-dark .notes-toolbar,
+.dark-mode .notes-toolbar {
+  background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+  border-bottom-color: #4b5563;
+}
+
+[data-theme="dark"] .notes-list,
+.theme-dark .notes-list,
+.dark-mode .notes-list {
+  background: #111827;
+}
+
+[data-theme="dark"] .notes-count,
+.theme-dark .notes-count,
+.dark-mode .notes-count {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .note-item,
+.theme-dark .note-item,
+.dark-mode .note-item {
+  background: #1f2937;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .note-title,
+[data-theme="dark"] .note-content,
+.theme-dark .note-title,
+.theme-dark .note-content,
+.dark-mode .note-title,
+.dark-mode .note-content {
+  background: #111827;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .note-title::placeholder,
+[data-theme="dark"] .note-content::placeholder,
+.theme-dark .note-title::placeholder,
+.theme-dark .note-content::placeholder,
+.dark-mode .note-title::placeholder,
+.dark-mode .note-content::placeholder {
+  color: #6b7280;
+}
+
+[data-theme="dark"] .note-title:focus,
+[data-theme="dark"] .note-content:focus,
+.theme-dark .note-title:focus,
+.theme-dark .note-content:focus,
+.dark-mode .note-title:focus,
+.dark-mode .note-content:focus {
+  border-color: #107c41;
+  box-shadow: 0 0 0 4px rgba(16, 124, 65, 0.25);
+}
+
+[data-theme="dark"] .note-footer,
+.theme-dark .note-footer,
+.dark-mode .note-footer {
+  border-top-color: #374151;
+}
+
+[data-theme="dark"] .notes-empty,
+.theme-dark .notes-empty,
+.dark-mode .notes-empty {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .notes-empty p,
+.theme-dark .notes-empty p,
+.dark-mode .notes-empty p {
+  color: #9ca3af;
+}
+
+/* Системная тёмная тема (резерв) */
 @media (prefers-color-scheme: dark) {
   .notes-window {
     background: #1f2937;
@@ -383,7 +481,7 @@
 
   .notes-toolbar {
     background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
-    border-bottom-color: #374151;
+    border-bottom-color: #4b5563;
   }
 
   .notes-list {
@@ -398,24 +496,37 @@
 
   .note-item {
     background: #1f2937;
-    border-color: #374151;
+    border-color: #4b5563;
   }
 
   .note-title,
   .note-content {
     background: #111827;
-    border-color: #374151;
+    border-color: #4b5563;
     color: #e5e7eb;
+  }
+
+  .note-title::placeholder,
+  .note-content::placeholder {
+    color: #6b7280;
   }
 
   .note-title:focus,
   .note-content:focus {
     border-color: #107c41;
-    box-shadow: 0 0 0 4px rgba(16, 124, 65, 0.2);
+    box-shadow: 0 0 0 4px rgba(16, 124, 65, 0.25);
   }
 
   .note-footer {
     border-top-color: #374151;
+  }
+
+  .notes-empty {
+    color: #9ca3af;
+  }
+
+  .notes-empty p {
+    color: #9ca3af;
   }
 }
 
