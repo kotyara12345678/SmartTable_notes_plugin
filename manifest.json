@@ -1,7 +1,7 @@
 {
   "id": "com.smarttable.notes-plugin",
   "name": "Заметки",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Современный плагин для создания заметок с авто-сохранением, большим окном и улучшенным дизайном.",
   "author": "SmartTable Team",
   "main": "main.js",
