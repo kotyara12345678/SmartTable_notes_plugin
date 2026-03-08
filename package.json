@@ -1,6 +1,6 @@
 {
   "name": "notes-plugin",
-  "version": "1.0.1",
+  "version": "1.1.2",
   "description": "Notes Plugin for SmartTable - Auto Build & Release",
   "scripts": {
     "build": "node scripts/build.js",
